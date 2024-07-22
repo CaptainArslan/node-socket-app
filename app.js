@@ -14,7 +14,7 @@ app.use(
 );
 
 app.get("/", (req, res) => {
-  res.send("Server is running");
+  res.send("Server is running at " + window.location.hostname);
 });
 
 const server = http.createServer(app);
