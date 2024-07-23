@@ -6,9 +6,12 @@ const socketIo = require("socket.io");
 const app = express();
 
 // Use CORS middleware
+app.use(cors());
+
+// Optionally, you can set CORS options
 app.use(
   cors({
-    origin: "*", // Allow all origins
+    origin: "*", // Replace with your frontend URL
     allowedHeaders: ["Content-Type"],
   })
 );
@@ -17,15 +20,24 @@ app.get("/", (req, res) => {
   res.send("Server is running");
 });
 
-const server = http.createServer(app);
+const server = require("http").createServer(app);
 
-const io = socketIo(server, {
-  cors: {
-    origin: "*", // Allow all origins
-  },
+const port = process.env.PORT || 3000;
+var userCount = 0;
+
+server.listen(port, () => {
+  console.log("Server listening at port %d", port);
 });
 
-let userCount = 0;
+const io = require("socket.io")(server, {
+  cors: {
+    origin: "*",
+    methods: ["*"],
+    transports: ["websocket", "polling"],
+    credentials: false,
+  },
+  allowEIO3: true,
+});
 
 io.on("connection", (socket) => {
   userCount++;
@@ -46,12 +58,6 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("User disconnected");
-    userCount--;
     io.emit("user-disconnected", socket.id);
   });
-});
-
-// Listen on a dynamic port
-server.listen(0, () => {
-  console.log(`Server listening at port ${server.address().port}`);
 });
