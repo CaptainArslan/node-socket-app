@@ -11,7 +11,7 @@ app.use(cors());
 // Optionally, you can set CORS options
 app.use(
   cors({
-    origin: "*", // Replace with your frontend URL
+    origin: "*",
     allowedHeaders: ["Content-Type"],
   })
 );
@@ -41,15 +41,12 @@ const io = require("socket.io")(server, {
 
 io.on("connection", (socket) => {
   userCount++;
-  console.log(`${userCount} User connected : ` + socket.id);
+  console.log(`${userCount} g client : ` + socket.id);
 
-  socket.on("message", (msg) => {
-    console.log("New messages received on server: " + msg);
-    io.emit("message", msg);
-  });
+  socket.emit("client-connected", socket.id);
 
   socket.on("location", (location) => {
-    console.log("New location received from client: " + location);
+    console.log("New location :", location);
     io.emit("location", {
       id: socket.id,
       ...location,

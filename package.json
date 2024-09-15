@@ -7,6 +7,6 @@
   "scripts": {
     "dev": "nodemon server.js",
     "build": "npm install",
-    "start": "node server.js"
+    "start": "node app.js"
   }
 }
