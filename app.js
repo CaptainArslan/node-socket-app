@@ -32,9 +32,6 @@ const io = socketIo(server, {
 });
 
 var managers = {};
-var clients = {};
-var locations = {};
-var drivers = {};
 
 io.on("connection", (socket) => {
   userCount++;
@@ -61,44 +58,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Handle the "driver-connected" event
-  socket.on("driver-connected", (driver) => {
-    const driverId = driver.id;
-
-    // Check if the driverId already exists in the drivers object
-    if (!drivers[driverId]) {
-      console.log(`New driver connected:`, driver);
-      // Add a new entry for the driverId
-      drivers[driverId] = {
-        socketId: socket.id, // Store the socket ID
-        driver: driver, // Store the driver object
-      };
-      console.log("driver added:", drivers);
-      socket.emit("driver-connected", driver);
-    } else {
-      // Optionally, update the existing driver's information if needed
-      console.log(`driver with ID ${driverId} already exists.`);
-    }
-  });
-
-  // Handle the "client-connected" event
-  socket.on("client-connected", (client) => {
-    const clientId = client.id;
-
-    // Check if the clientId already exists in the clients object
-    if (!clients[clientId]) {
-      // Add a new entry for the clientId
-      clients[clientId] = {
-        socketId: socket.id, // Store the socket ID
-        client: client, // Store the client object
-      };
-      console.log("Clients: ", clients);
-      socket.emit("client-connected", client);
-    } else {
-      // Optionally, update the existing client's information if needed
-      console.log(`Client with ID ${clientId} already exists.`);
-    }
-  });
 
   // Handle the "location" event
   socket.on("location", (location) => {
