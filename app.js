@@ -101,10 +101,6 @@ io.on("connection", (socket) => {
     if (!trips[tripId]) {
       trips[tripId] = {
         socketId: socket.id,
-        managerId: managerId,
-        managerSocketId: managers[managerId]
-          ? managers[managerId].socketId
-          : null,
         trip: trip,
       };
       console.log("Trips: ", trips);
@@ -134,7 +130,7 @@ io.on("connection", (socket) => {
     }
 
     if (adminSocketId) {
-      socket.to(adminSocketId).emit("trip-location", location);
+      socket.to(adminSocketId).emit("trip-location", location);``
     }
   });
 
