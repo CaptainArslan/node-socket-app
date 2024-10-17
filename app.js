@@ -76,6 +76,9 @@ io.on("connection", (socket) => {
         socket.to(adminSocketId).emit("manager-connected", manager);
       }
     } else {
+      if (adminSocketId) {
+        socket.to(adminSocketId).emit("manager-exists", manager);
+      }
       console.log(`Manager with ID ${managerId} already exists.`);
     }
   });
@@ -99,14 +102,17 @@ io.on("connection", (socket) => {
       trips[tripId] = {
         socketId: socket.id,
         managerId: managerId,
-        managerSocketId: managers[managerId].socketId,
+        managerSocketId: managers[managerId]
+          ? managers[managerId].socketId
+          : null,
         trip: trip,
       };
       console.log("Trips: ", trips);
-      console.log("Manager Socket ID: ", managers[managerId].socketId);
 
       // Broadcast trip start to the manager and admin
-      socket.to(managers[managerId].socketId).emit("trip-started", trip);
+      if (managers[managerId]) {
+        socket.to(managers[managerId].socketId).emit("trip-started", trip);
+      } 
       if (adminSocketId) {
         socket.to(adminSocketId).emit("trip-started", trip);
       }
@@ -140,7 +146,9 @@ io.on("connection", (socket) => {
     if (trips[tripId]) {
       // Broadcast trip end to the manager and admin
       console.log("mahnager socket id: " + managers[managerId].socketId);
-      socket.to(managers[managerId].socketId).emit("trip-ended", trip);
+      if (managers[managerId]) {
+        socket.to(managers[managerId].socketId).emit("trip-ended", trip);
+      }
       if (adminSocketId) {
         socket.to(adminSocketId).emit("trip-ended", trip);
       }
