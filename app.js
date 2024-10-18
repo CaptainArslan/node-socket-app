@@ -46,17 +46,22 @@ io.on("connection", (socket) => {
   socket.on("admin-connected", (admin) => {
     const adminId = admin.id;
 
-    if (!admins[adminId]) {
+    // if (!admins[adminId]) {
       admins[adminId] = {
         socketId: socket.id, // Store the socket ID
         admin: admin, // Store the admin object
       };
       adminSocketId = socket.id;
       console.log("Admins: ", admins);
-      socket.emit("admin-connected", admin);
-    } else {
-      console.log(`Admin with ID ${adminId} already exists.`);
-    }
+      socket.emit("admin-connected", {
+        admin: admin,
+        managers: managers,
+        trips: trips,
+        adminSocketId: adminSocketId,
+      });
+    // } else {
+    //   console.log(`Admin with ID ${adminId} already exists.`);
+    // }
   });
 
   // Handle the "manager-connected" event
@@ -64,20 +69,20 @@ io.on("connection", (socket) => {
     const managerId = manager.id;
 
     // if (!managers[managerId]) {
-    managers[managerId] = {
-      socketId: socket.id, // Store the socket ID
-      manager: manager, // Store the manager object
-    };
-    console.log("Managers: ", managers);
-    socket.emit("manager-connected", {
-      manager: manager,
-      trips: trips,
-    });
+      managers[managerId] = {
+        socketId: socket.id, // Store the socket ID
+        manager: manager, // Store the manager object
+      };
+      console.log("Managers: ", managers);
+      socket.emit("manager-connected", {
+        manager: manager,
+        trips: trips,
+      });
 
-    // Notify the admin of a new manager connection
-    if (adminSocketId) {
-      socket.to(adminSocketId).emit("manager-connected", manager);
-    }
+      // Notify the admin of a new manager connection
+      if (adminSocketId) {
+        socket.to(adminSocketId).emit("manager-connected", manager);
+      }
     // } else {
     //   if (adminSocketId) {
     //     socket.to(adminSocketId).emit("manager-exists", manager);
@@ -98,29 +103,31 @@ io.on("connection", (socket) => {
   });
 
   socket.on("trip-started", (trip) => {
-    const tripId = trip.id;
+    const tripId = trip.selected_schedule.id;
     const managerId = trip.managerId;
 
-    if (!trips[tripId]) {
-      trips[tripId] = {
-        socketId: socket.id,
-        trip: trip,
-      };
-      console.log("Trips: ", trips);
-
-      // Broadcast trip start to the manager and admin
-      if (managers[managerId]) {
-        socket.to(managers[managerId].socketId).emit("trip-started", trip);
-      }
-      if (adminSocketId) {
-        socket.to(adminSocketId).emit("trip-started", trip);
-      }
-    } else {
-      socket.to(socket.id).emit("trip-exists", trip);
-      console.log(
-        `Trip with ID ${tripId} for manager ${managerId} already exists.`
-      );
+    // if (!trips[tripId]) {
+    if (!trips[managerId]) {
+      trips[managerId] = {};
     }
+
+    trips[managerId][tripId] = {
+      trip: trip,
+    };
+
+    // Broadcast trip start to the manager and admin
+    if (managers[managerId]) {
+      socket.to(managers[managerId].socketId).emit("trip-started", trip);
+    }
+    if (adminSocketId) {
+      socket.to(adminSocketId).emit("trip-started", trip);
+    }
+    // } else {
+    //   socket.to(socket.id).emit("trip-exists", trip);
+    //   console.log(
+    //     `Trip with ID ${tripId} for manager ${managerId} already exists.`
+    //   );
+    // }
   });
 
   // Handle the "trip-locations" event (emit location updates to manager and admin)
@@ -133,8 +140,7 @@ io.on("connection", (socket) => {
     }
 
     if (adminSocketId) {
-      socket.to(adminSocketId).emit("trip-location", location);
-      ``;
+      socket.to(adminSocketId).emit("trip-location", location);``
     }
   });
 
