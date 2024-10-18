@@ -63,24 +63,27 @@ io.on("connection", (socket) => {
   socket.on("manager-connected", (manager) => {
     const managerId = manager.id;
 
-    if (!managers[managerId]) {
-      managers[managerId] = {
-        socketId: socket.id, // Store the socket ID
-        manager: manager, // Store the manager object
-      };
-      console.log("Managers: ", managers);
-      socket.emit("manager-connected", manager);
+    // if (!managers[managerId]) {
+    managers[managerId] = {
+      socketId: socket.id, // Store the socket ID
+      manager: manager, // Store the manager object
+    };
+    console.log("Managers: ", managers);
+    socket.emit("manager-connected", {
+      manager: manager,
+      trips: trips,
+    });
 
-      // Notify the admin of a new manager connection
-      if (adminSocketId) {
-        socket.to(adminSocketId).emit("manager-connected", manager);
-      }
-    } else {
-      if (adminSocketId) {
-        socket.to(adminSocketId).emit("manager-exists", manager);
-      }
-      console.log(`Manager with ID ${managerId} already exists.`);
+    // Notify the admin of a new manager connection
+    if (adminSocketId) {
+      socket.to(adminSocketId).emit("manager-connected", manager);
     }
+    // } else {
+    //   if (adminSocketId) {
+    //     socket.to(adminSocketId).emit("manager-exists", manager);
+    //   }
+    //   console.log(`Manager with ID ${managerId} already exists.`);
+    // }
   });
 
   // Handle the "manager-disconnected" event
@@ -108,7 +111,7 @@ io.on("connection", (socket) => {
       // Broadcast trip start to the manager and admin
       if (managers[managerId]) {
         socket.to(managers[managerId].socketId).emit("trip-started", trip);
-      } 
+      }
       if (adminSocketId) {
         socket.to(adminSocketId).emit("trip-started", trip);
       }
@@ -130,7 +133,8 @@ io.on("connection", (socket) => {
     }
 
     if (adminSocketId) {
-      socket.to(adminSocketId).emit("trip-location", location);``
+      socket.to(adminSocketId).emit("trip-location", location);
+      ``;
     }
   });
 
