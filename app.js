@@ -34,6 +34,7 @@ const io = socketIo(server, {
 let managers = {};
 let trips = {};
 let admins = {};
+let adminTrips = {};
 let adminSocketId = null;
 
 io.on("connection", (socket) => {
@@ -55,7 +56,7 @@ io.on("connection", (socket) => {
     socket.emit("admin-connected", {
       admin: admin,
       managers: managers,
-      trips: trips,
+      trips: adminTrips,
       adminSocketId: adminSocketId,
     });
     // } else {
@@ -105,12 +106,15 @@ io.on("connection", (socket) => {
     const tripId = trip.selected_schedule.id;
     const managerId = trip.managerId;
 
-    // if (!trips[tripId]) {
     if (!trips[managerId]) {
       trips[managerId] = {};
     }
 
     trips[managerId][tripId] = {
+      trip: trip,
+    };
+
+    adminTrips[tripId] = {
       trip: trip,
     };
 
@@ -149,19 +153,25 @@ io.on("connection", (socket) => {
     const tripId = trip.selected_schedule.id;
     const managerId = trip.managerId;
 
-    // if (trips[tripId]) {
     // Broadcast trip end to the manager and admin
-    socket.to(socket.id).emit("trip-ended", trip);
-    console.log("mahnager socket id: " + managers[managerId].socketId);
     if (managers[managerId]) {
+      console.log("mahnager socket id: " + managers[managerId].socketId);
       socket.to(managers[managerId].socketId).emit("trip-ended", trip);
     }
+
     if (adminSocketId) {
       socket.to(adminSocketId).emit("trip-ended", trip);
     }
-    delete trips[tripId];
-    console.log(`Trip Ended:  ${trip.id}`);
-    console.log("Trips: ", trips);
+
+    socket.to(socket.id).emit("trip-ended", trip);
+
+    if (trips[managerId]) {
+      delete trips[managerId][tripId];
+    }
+
+    if (adminTrips[tripId]) {
+      delete adminTrips[tripId];
+    }
     // } else {
     //   socket.to(socket.id).emit("trip-not-found", trip);
     //   console.log(
