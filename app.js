@@ -75,13 +75,16 @@ io.on("connection", (socket) => {
     };
     console.log("Managers: ", managers);
     socket.emit("manager-connected", {
-      manager: manager,
-      trips: trips[managerId],
+      manager:   managers[managerId],
+      trips: trips[managerId] ? trips[managerId] : {},
     });
 
     // Notify the admin of a new manager connection
     if (adminSocketId) {
-      socket.to(adminSocketId).emit("manager-connected", manager);
+      socket.to(adminSocketId).emit("manager-connected", {
+        manager:   managers[managerId],
+        trips: trips[managerId] ? trips[managerId] : {},
+      });
     }
     // } else {
     //   if (adminSocketId) {
